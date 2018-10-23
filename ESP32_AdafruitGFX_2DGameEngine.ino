@@ -21,7 +21,7 @@ Graphics gfx = Graphics(&tft);
 
 // WLAN sektion
 char* ssid = "WLAN-C6QFYT";
-const char* password = "4258803659978466";
+const char* password = "wifipw";
 
 // Webserver
 WebServer server(80);
