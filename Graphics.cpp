@@ -1,8 +1,19 @@
+///#####################################################
+///# This class is implementing the basic funcionality #
+///# for displaying rectangles, triangles, HLines,     #
+///# VLines and Text. This class is relying on the     #
+///# implementation of drawPixel, setCursor,           #
+///# setTextColor, setTextWrap and print of the        #
+///# Adafruit_GFX device. Best results are achieved    #
+///# when using a displayBuffer.                       #
+///# By Sebastian Leifeld                              #
+///#####################################################
+
 #include "Graphics.h"
 
-Adafruit_ST7735* g;
+Adafruit_GFX* g;
 
-Graphics::Graphics(Adafruit_ST7735* screen)
+Graphics::Graphics(Adafruit_GFX* screen)
 {
   g = screen;
 }
@@ -141,7 +152,6 @@ void Graphics::drawTriangle(int ax, int ay, int bx, int by, int cx, int cy, int 
                            cy,
                            color);
 }
-
 
 void Graphics::drawHLine(int ax, int bx, int y, uint16_t color)
 {

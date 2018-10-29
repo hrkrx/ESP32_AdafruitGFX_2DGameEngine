@@ -21,7 +21,7 @@ Graphics gfx = Graphics(&tft);
 
 // WLAN sektion
 char* ssid = "WLAN-C6QFYT";
-const char* password = "wifipw";
+const char* password = "4258803659978466";
 
 // Webserver
 WebServer server(80);
@@ -63,10 +63,13 @@ void setup(void) {
   server.on("/map", handleMap);
   server.begin();
   DrawLoadingScreen(75);
+  btStop();
+  DrawLoadingScreen(80);
+
   Serial.println("Start GUI task");
   xTaskCreate(
                     taskOne,          /* Task function. */
-                    "TaskOne",        /* String with name of task. */
+                    "GUI task",        /* String with name of task. */
                     10000,            /* Stack size in words. */
                     NULL,             /* Parameter passed as input of the task */
                     1,                /* Priority of the task. */
@@ -75,7 +78,7 @@ void setup(void) {
   Serial.println("Start webserver task");
   xTaskCreate(
                     taskTwo,          /* Task function. */
-                    "TaskTwo",        /* String with name of task. */
+                    "Webserver task",        /* String with name of task. */
                     10000,            /* Stack size in words. */
                     NULL,             /* Parameter passed as input of the task */
                     1,                /* Priority of the task. */
