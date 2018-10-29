@@ -29,12 +29,14 @@ WebServer server(80);
 int arrowRotation = 0;
 
 void setup(void) {
+  Serial.begin(115200);
   tft.init();   // LCD init
   tft.setRotation(0);
-  Serial.begin(115200);
+  Serial.println("LCD init finished");
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password); // WIFI connect
   delay(500);
+
   while (WiFi.waitForConnectResult() != WL_CONNECTED) 
   {
     delay(500);
@@ -46,13 +48,13 @@ void setup(void) {
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
   Serial.print("Signalstärke: ");
-  Serial.print(getWifiStrength(10));
+  Serial.print(GetWifiStrength(10));
   Serial.println("");
 
   if (MDNS.begin("esp32")) {
     Serial.println("MDNS responder started");
   }
-
+  
   server.on("/", handleRoot);
   server.on("/test", handleTest);
   server.on("/map", handleMap);
@@ -88,8 +90,9 @@ void taskOne( void * parameter )
 {
   while(1)
   {
-    DrawRotatingArrow();
-    delay(5); // delay wird hier benötigt um dem Watchdog zeit zu geben
+    DrawTopThreeNetworks();
+    //DrawRotatingArrow();
+    delay(50); // delay wird hier benötigt um dem Watchdog zeit zu geben
   }
   vTaskDelete( NULL );
 }
@@ -263,19 +266,128 @@ void drawArrow(uint16_t color, int x, int y, float factor, int rotation)
 
 ///
 ///
+/// Funcionality
+///
+///
+
+void DrawTopThreeNetworks()
+{
+  tft.fillScreen(ST7735_BLACK);
+
+  int numberOfNetworks = WiFi.scanNetworks();
+  String ssidList[8];
+  int ssidStrenghts[8];
+
+  if (numberOfNetworks > 8)
+  {
+    numberOfNetworks = 8;
+  }
+
+  for(int i =0; i<numberOfNetworks; i++)
+  {
+    ssidList[i] = WiFi.SSID(i);
+    ssidStrenghts[i] = GetWifiStrengthForSSID(5, i);
+  }
+
+  int best = -1;
+  int secondBest = -1;
+  int thirdBest = -1;
+
+  for(int i =0; i<numberOfNetworks; i++)
+  {
+    if(best > 0)
+    {
+      if (ssidStrenghts[best] < ssidStrenghts[i])
+      {
+        best = i;
+      }
+    }
+    else
+    {
+      best = i;
+    }
+  }
+
+  for(int i =0; i<numberOfNetworks; i++)
+  {
+    if (i != best)
+    {
+      if(secondBest > 0)
+      {
+        if (ssidStrenghts[secondBest] < ssidStrenghts[i])
+        {
+          secondBest = i;
+        }
+      }
+      else
+      {
+        secondBest = i;
+      }
+    }
+  }
+
+  for(int i =0; i<numberOfNetworks; i++)
+  {
+    if (i != best && i != secondBest)
+    {
+      if(thirdBest > 0)
+      {
+        if (ssidStrenghts[thirdBest] < ssidStrenghts[i])
+        {
+          thirdBest = i;
+        }
+      }
+      else
+      {
+        thirdBest = i;
+      }
+    }
+  }
+
+  String msg = ssidList[best] + " " + ssidStrenghts[best] + "\n\n" +
+              ssidList[secondBest] + " " + ssidStrenghts[secondBest] + "\n\n" +
+              ssidList[thirdBest] + " " + ssidStrenghts[thirdBest];
+
+  char* cMsg = (char*)malloc(sizeof(char)*msg.length());
+  
+  strcpy(cMsg, msg.c_str());
+  tft.setCursor(0,0);
+  tft.setTextColor(ST7735_BLUE);
+  tft.setTextWrap(true);
+  tft.print(cMsg);
+  
+  tft.displayBuffer();
+  //free(cMsg);
+}
+
+///
+///
 /// Extension Methods
 ///
 ///
 
-int getWifiStrength(int points){
-    long rssi = 0;
-    long averageRSSI=0;
-    
-    for (int i=0;i < points;i++){
-        rssi += WiFi.RSSI();
-        delay(20);
-    }
+int GetWifiStrength(int points){
+  long rssi = 0;
+  long averageRSSI=0;
+  
+  for (int i=0;i < points;i++){
+      rssi += WiFi.RSSI();
+      delay(20);
+  }
 
-   averageRSSI=rssi/points;
-    return averageRSSI;
+  averageRSSI=rssi/points;
+  return averageRSSI;
+}
+
+int GetWifiStrengthForSSID(int points, int number){
+  long rssi = 0;
+  long averageRSSI=0;
+  
+  for (int i=0;i < points;i++){
+      rssi += WiFi.RSSI(number);
+      delay(20);
+  }
+
+  averageRSSI=rssi/points;
+  return averageRSSI;
 }

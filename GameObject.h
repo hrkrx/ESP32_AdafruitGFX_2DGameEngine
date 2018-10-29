@@ -1,0 +1,5 @@
+class GameObject
+{
+    public:
+    private:
+};
