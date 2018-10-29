@@ -33,8 +33,10 @@ void setup(void) {
   tft.init();   // LCD init
   tft.setRotation(0);
   Serial.println("LCD init finished");
+  DrawLoadingScreen(10);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password); // WIFI connect
+  DrawLoadingScreen(20);
   delay(500);
 
   while (WiFi.waitForConnectResult() != WL_CONNECTED) 
@@ -42,6 +44,7 @@ void setup(void) {
     delay(500);
     Serial.print(".");
   }
+  DrawLoadingScreen(35);
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
@@ -54,12 +57,12 @@ void setup(void) {
   if (MDNS.begin("esp32")) {
     Serial.println("MDNS responder started");
   }
-  
+  DrawLoadingScreen(50);
   server.on("/", handleRoot);
   server.on("/test", handleTest);
   server.on("/map", handleMap);
   server.begin();
-
+  DrawLoadingScreen(75);
   Serial.println("Start GUI task");
   xTaskCreate(
                     taskOne,          /* Task function. */
@@ -263,6 +266,17 @@ void drawArrow(uint16_t color, int x, int y, float factor, int rotation)
                     color);
 }
 
+void DrawLoadingScreen(int percentage)
+{
+  tft.fillScreen(ST7735_BLACK);
+  int margin = 5;
+  int step = (128 - (2 * margin)) / 100;
+  gfx.drawText(36, 54, "Loading", ST7735_GREEN);
+  gfx.drawHLine(margin, margin + step * percentage, 64, ST7735_GREEN);
+  gfx.drawText(52, 70, String(percentage), ST7735_GREEN);
+  tft.displayBuffer();
+}
+
 
 ///
 ///
@@ -289,72 +303,19 @@ void DrawTopThreeNetworks()
     ssidStrenghts[i] = GetWifiStrengthForSSID(5, i);
   }
 
-  int best = -1;
-  int secondBest = -1;
-  int thirdBest = -1;
+  int best = 0;
+  int secondBest = 1;
+  int thirdBest = 2;
 
-  for(int i =0; i<numberOfNetworks; i++)
-  {
-    if(best > 0)
-    {
-      if (ssidStrenghts[best] < ssidStrenghts[i])
-      {
-        best = i;
-      }
-    }
-    else
-    {
-      best = i;
-    }
-  }
+  // Sortiere Array
 
-  for(int i =0; i<numberOfNetworks; i++)
-  {
-    if (i != best)
-    {
-      if(secondBest > 0)
-      {
-        if (ssidStrenghts[secondBest] < ssidStrenghts[i])
-        {
-          secondBest = i;
-        }
-      }
-      else
-      {
-        secondBest = i;
-      }
-    }
-  }
 
-  for(int i =0; i<numberOfNetworks; i++)
-  {
-    if (i != best && i != secondBest)
-    {
-      if(thirdBest > 0)
-      {
-        if (ssidStrenghts[thirdBest] < ssidStrenghts[i])
-        {
-          thirdBest = i;
-        }
-      }
-      else
-      {
-        thirdBest = i;
-      }
-    }
-  }
 
   String msg = ssidList[best] + " " + ssidStrenghts[best] + "\n\n" +
               ssidList[secondBest] + " " + ssidStrenghts[secondBest] + "\n\n" +
               ssidList[thirdBest] + " " + ssidStrenghts[thirdBest];
 
-  char* cMsg = (char*)malloc(sizeof(char)*msg.length());
-  
-  strcpy(cMsg, msg.c_str());
-  tft.setCursor(0,0);
-  tft.setTextColor(ST7735_BLUE);
-  tft.setTextWrap(true);
-  tft.print(cMsg);
+  gfx.drawText(msg, ST7735_BLUE);
   
   tft.displayBuffer();
   //free(cMsg);
@@ -362,7 +323,7 @@ void DrawTopThreeNetworks()
 
 ///
 ///
-/// Extension Methods
+/// Extension Methoden
 ///
 ///
 

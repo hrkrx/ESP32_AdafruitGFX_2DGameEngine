@@ -141,3 +141,46 @@ void Graphics::drawTriangle(int ax, int ay, int bx, int by, int cx, int cy, int 
                            cy,
                            color);
 }
+
+
+void Graphics::drawHLine(int ax, int bx, int y, uint16_t color)
+{
+  if (ax < bx)
+  {
+    Extensions::swap(ax, bx);
+  }
+
+  for(size_t i = 0; i < bx - ax; i++)
+  {
+    g->drawPixel(ax + i, y, color);
+  }
+}
+
+void Graphics::drawVLine(int ay, int by, int x, uint16_t color)
+{
+  if (ay < by)
+  {
+    Extensions::swap(ay, by);
+  }
+
+  for(size_t i = 0; i < by - ay; i++)
+  {
+    g->drawPixel(x, ay + i, color);
+  }
+}
+
+void Graphics::drawText(int x, int y, String text, uint16_t color)
+{
+  char* cMsg = (char*)malloc(sizeof(char)*text.length());
+  
+  strcpy(cMsg, text.c_str());
+  g->setCursor(x,y);
+  g->setTextColor(color);
+  g->setTextWrap(true);
+  g->print(cMsg);
+}
+
+void Graphics::drawText(String text, uint16_t color)
+{
+  drawText(0, 0, text, color);
+}
