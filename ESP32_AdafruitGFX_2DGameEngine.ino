@@ -1,7 +1,7 @@
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <XTronical_ST7735.h> // Hardware-specific library
 #include <SPI.h>
-
+#include <SD.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <WebServer.h>
@@ -14,6 +14,7 @@
 // in which case, set this #define pin to -1!
 #define TFT_CS   5       // Display enable (Chip select), if not enabled will not talk on SPI bus
 
+#define SD_CS 22
 // initialise the routine to talk to this display with these pin connections (as we've missed off
 // TFT_SCLK and TFT_MOSI the routine presumes we are using hardware SPI and internally uses 13 and 11
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS,  TFT_DC, TFT_RST);
@@ -27,6 +28,8 @@ const char* password = "4258803659978466";
 WebServer server(80);
 
 int arrowRotation = 0;
+
+SPIClass SpiSettings;
 
 void setup(void) {
   Serial.begin(115200);
@@ -66,6 +69,15 @@ void setup(void) {
   btStop();
   DrawLoadingScreen(80);
 
+  Serial.println("Init SD Card");
+  SpiSettings = *new SPIClass(HSPI);
+  SpiSettings.begin(25, 27, 26, 22);
+  if(!SD.begin(22, SpiSettings))
+  {
+    DrawErrorAndHalt("SD Card could not be initialized.");
+  }
+  DrawLoadingScreen(95);
+
   Serial.println("Start GUI task");
   xTaskCreate(
                     taskOne,          /* Task function. */
@@ -96,7 +108,8 @@ void taskOne( void * parameter )
 {
   while(1)
   {
-    DrawTopThreeNetworks();
+    DrawFilesOnSD();
+    //DrawTopThreeNetworks();
     //DrawRotatingArrow();
     delay(50); // delay wird hier benötigt um dem Watchdog zeit zu geben
   }
@@ -280,12 +293,27 @@ void DrawLoadingScreen(int percentage)
   tft.displayBuffer();
 }
 
+void DrawErrorAndHalt(String error)
+{
+  Serial.println(error);
+  gfx.drawText(error, ST7735_RED);
+  tft.displayBuffer();
+  while(1);
+}
 
 ///
 ///
 /// Funcionality
 ///
 ///
+
+void DrawFilesOnSD()
+{
+  tft.fillScreen(ST7735_BLACK);
+  File root = SD.open("/");
+  gfx.drawText(GetSDContent(root), ST7735_BLUE);
+  tft.displayBuffer();
+}
 
 void DrawTopThreeNetworks()
 {
@@ -354,4 +382,22 @@ int GetWifiStrengthForSSID(int points, int number){
 
   averageRSSI=rssi/points;
   return averageRSSI;
+}
+
+String GetSDContent(File dir) {
+  String result = "";
+  while (true) {
+    File entry =  dir.openNextFile();
+    if (! entry) {
+      // no more files
+      break;
+    }
+    result += entry.name();
+    if (entry.isDirectory()) {
+      result += " (D)";
+    }
+    entry.close();
+    result += "\n";
+  }
+  return result;
 }
