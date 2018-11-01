@@ -11,6 +11,7 @@ class Graphics
         void drawVLine(int ay, int by, int x, uint16_t color);
         void drawText(String text, uint16_t color);
         void drawText(int x, int y, String text, uint16_t color);
+        void drawBitmap(int x, int y, char* bmp, int w, int h);
     private:
         void drawBarycentricTriangle(int ax, int ay, int bx, int by, int cx, int cy, uint16_t color);
 };

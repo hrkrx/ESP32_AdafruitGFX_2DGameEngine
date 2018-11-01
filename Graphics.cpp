@@ -181,7 +181,7 @@ void Graphics::drawVLine(int ay, int by, int x, uint16_t color)
 
 void Graphics::drawText(int x, int y, String text, uint16_t color)
 {
-  char* cMsg = (char*)malloc(sizeof(char)*text.length());
+  char* cMsg = new char[text.length()];
   
   strcpy(cMsg, text.c_str());
   g->setCursor(x,y);
@@ -193,4 +193,11 @@ void Graphics::drawText(int x, int y, String text, uint16_t color)
 void Graphics::drawText(String text, uint16_t color)
 {
   drawText(0, 0, text, color);
+}
+
+void Graphics::drawBitmap(int x, int y, char* bmp, int w, int h)
+{
+  char* BitmapFileHeader = new char[14];
+  char* DipHeader = new char[40];
+  char* DipHeader = new char[40];
 }

@@ -30,6 +30,7 @@ WebServer server(80);
 int arrowRotation = 0;
 
 SPIClass SpiSettings;
+uint16_t color = 0;
 
 void setup(void) {
   Serial.begin(115200);
@@ -87,14 +88,14 @@ void setup(void) {
                     1,                /* Priority of the task. */
                     NULL);            /* Task handle. */
  
-  Serial.println("Start webserver task");
-  xTaskCreate(
-                    taskTwo,          /* Task function. */
-                    "Webserver task",        /* String with name of task. */
-                    10000,            /* Stack size in words. */
-                    NULL,             /* Parameter passed as input of the task */
-                    1,                /* Priority of the task. */
-                    NULL);            /* Task handle. */
+  // Serial.println("Start webserver task");
+  // xTaskCreate(
+  //                   taskTwo,          /* Task function. */
+  //                   "Webserver task",        /* String with name of task. */
+  //                   10000,            /* Stack size in words. */
+  //                   NULL,             /* Parameter passed as input of the task */
+  //                   1,                /* Priority of the task. */
+  //                   NULL);            /* Task handle. */
   
 }
 
@@ -108,7 +109,10 @@ void taskOne( void * parameter )
 {
   while(1)
   {
-    DrawFilesOnSD();
+    DrawTestImage(color);
+    color++;
+    //DrawImageWithFilter();
+    //DrawFilesOnSD();
     //DrawTopThreeNetworks();
     //DrawRotatingArrow();
     delay(50); // delay wird hier benötigt um dem Watchdog zeit zu geben
@@ -299,6 +303,21 @@ void DrawErrorAndHalt(String error)
   gfx.drawText(error, ST7735_RED);
   tft.displayBuffer();
   while(1);
+}
+
+void DrawImageWithFilter()
+{
+  File img = SD.open("/pepe.bmp");
+  char* pepe = (char*)malloc(sizeof(char)*img.size());
+  img.readBytes(pepe, img.size());
+  tft.displayBuffer();
+}
+
+void DrawTestImage(uint16_t color)
+{
+  tft.fillScreen(color);
+  gfx.drawText(String(color), ST7735_CYAN);
+  tft.displayBuffer();
 }
 
 ///
