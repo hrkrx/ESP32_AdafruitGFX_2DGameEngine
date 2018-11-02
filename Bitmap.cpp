@@ -8,7 +8,7 @@ Bitmap::Bitmap(char* data)
         _bitmapFileHeader[i] = data[i];
     }
 
-    _dataOffset = _bitmapFileHeader[13];
+    _dataOffset = _GetLittleEndianUint32(_bitmapFileHeader, 10);
     _dipHeader = new char[data[14]];
     
     for(uint16_t i = 0; i < data[14]; i++)
@@ -23,17 +23,20 @@ Bitmap::Bitmap(char* data)
     {
         _bitmapData[i] = data[i];
     }
+
+    _bitCount = _GetLittleEndianUint16(_dipHeader, 14);
+    _
      
 }
 
 int Bitmap::GetWidth()
 {
-    return _GetLittleEndianInt(_dipHeader, 18);
+    return (int)_GetLittleEndianUint32(_dipHeader, 4);
 }
 
 int Bitmap::GetHeight()
 {
-    return _GetLittleEndianInt(_dipHeader, 22);
+    return (int)_GetLittleEndianUint32(_dipHeader, 8);
 }
 
 uint16_t Bitmap::_GetLittleEndianUint16(char* bytes, int start = 0)
@@ -44,10 +47,10 @@ uint16_t Bitmap::_GetLittleEndianUint16(char* bytes, int start = 0)
     return result;
 }
 
-int Bitmap::_GetLittleEndianInt(char* bytes, int start = 0)
+uint32_t Bitmap::_GetLittleEndianUint32(char* bytes, int start = 0)
 {
-    int result = 0;
-    for (int n = sizeof(result) + start; n >= start; n--)
+    uint32_t result = 0;
+    for (uint32_t n = sizeof(result) + start; n >= start; n--)
         result = (result << 8) + bytes[n];
     return result;
 }
